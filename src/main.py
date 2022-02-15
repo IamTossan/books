@@ -10,13 +10,18 @@ class CreatePageDTO(BaseModel):
     name: str
 
 
-class Page(BaseModel):
-    id: str = str(uuid.uuid4())
+class UpdatePageDTO(BaseModel):
     name: str
+
+
+class Page(BaseModel):
+    id: str
+    name: str
+    version: int = 1
     status: str = "DRAFT"
 
 
-pages = {}
+pages = []
 
 
 @app.get("/")
@@ -31,22 +36,37 @@ async def health():
 
 @app.get("/pages")
 async def get_pages():
-    return list(pages.values())
+    return pages
 
 
 @app.get("/pages/{page_id}")
 async def get_page(page_id: str):
-    return pages[page_id]
+    page = [p for p in pages if p["id"] == page_id][-1]
+    return page
 
 
 @app.post("/pages")
 async def create_page(page: CreatePageDTO):
-    new_page = Page(**page.dict())
-    pages[new_page.id] = new_page.dict()
+    new_page = Page(id=str(uuid.uuid4()), name=page.dict()["name"])
+    pages.append(new_page.dict())
     return {"id": new_page.id}
+
+
+@app.put("/pages/{page_id}")
+async def get_page(page_id: str, payload: UpdatePageDTO):
+    page = [p for p in pages if p["id"] == page_id][-1]
+    if page["status"] == "PUBLISHED":
+        new_page = Page(
+            id=page_id, name=payload.dict()["name"], version=page["version"] + 1
+        )
+        pages.append(new_page.dict())
+        return new_page
+    page["name"] = payload.dict()["name"]
+    return page
 
 
 @app.post("/pages/publish/{page_id}")
 async def publish_page(page_id: str):
-    pages[page_id]["status"] = "PUBLISHED"
-    return pages[page_id]
+    page = [p for p in pages if p["id"] == page_id][-1]
+    page["status"] = "PUBLISHED"
+    return page

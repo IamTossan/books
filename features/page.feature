@@ -14,3 +14,13 @@ Scenario: Publish a page
     Given I created a page
     When I publish a page
     Then the page has a published state
+
+Scenario: Update a page
+    Given I created a page
+    When I update the page
+    Then the page is updated
+
+Scenario: Update with a published page
+    Given I published a page
+    When I update the page
+    Then a draft is created

@@ -58,3 +58,33 @@ def step_impl(context):
 def step_impl(context):
     r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
     assert r.json()["status"] == "PUBLISHED"
+
+
+@when("I update the page")
+def step_impl(context):
+    r = requests.put(
+        f"{BASE_URL}/pages/{context.created_page_id}", json={"name": "updated test"}
+    )
+    assert r.status_code == 200
+
+
+@then("the page is updated")
+def step_impl(context):
+    r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
+    assert r.json()["name"] == "updated test"
+
+
+@given("I published a page")
+def step_impl(context):
+    r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
+    context.created_page_id = r.json()["id"]
+    r = requests.post(f"{BASE_URL}/pages/publish/{context.created_page_id}")
+    assert r.status_code == 200
+
+
+@then("a draft is created")
+def step_impl(context):
+    r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
+    assert r.json()["status"] == "DRAFT"
+    assert r.json()["name"] == "updated test"
+    assert r.json()["version"] == 2
