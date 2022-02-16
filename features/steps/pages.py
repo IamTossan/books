@@ -74,7 +74,7 @@ def step_impl(context):
     assert r.json()["name"] == "updated test"
 
 
-@given("I published a page")
+@given("a page is published")
 def step_impl(context):
     r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
     context.created_page_id = r.json()["id"]
@@ -88,3 +88,19 @@ def step_impl(context):
     assert r.json()["status"] == "DRAFT"
     assert r.json()["name"] == "updated test"
     assert r.json()["version"] == 2
+
+
+@when("I make a comment on that page")
+def step_impl(context):
+    r = requests.post(
+        f"{BASE_URL}/pages/comment/{context.created_page_id}",
+        json={"author": "test user", "comment": "test comment"},
+    )
+    assert r.status_code == 200
+
+
+@then("the comment is created")
+def step_impl(context):
+    r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
+    print(r.json())
+    assert r.json()["comments"] == [{"author": "test user", "comment": "test comment"}]

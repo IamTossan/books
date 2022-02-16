@@ -21,6 +21,11 @@ Scenario: Update a page
     Then the page is updated
 
 Scenario: Update with a published page
-    Given I published a page
+    Given a page is published
     When I update the page
     Then a draft is created
+
+Scenario: Comment a page
+    Given a page is published
+    When I make a comment on that page
+    Then the comment is created
