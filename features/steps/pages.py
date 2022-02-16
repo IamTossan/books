@@ -41,50 +41,45 @@ def step_impl(context):
         assert page_id in page_ids
 
 
-@given("I created a page")
-def step_impl(context):
-    r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
-    context.created_page_id = r.json()["id"]
-    assert r.status_code == 200
+@given("I got {n} page(s) created")
+def step_impl(context, n):
+    context.created_page_ids = []
+    for i in range(int(n)):
+        r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
+        context.created_page_ids.append(r.json()["id"])
+        assert r.status_code == 200
 
 
 @when("I publish a page")
 def step_impl(context):
-    r = requests.post(f"{BASE_URL}/pages/publish/{context.created_page_id}")
+    r = requests.post(f"{BASE_URL}/pages/publish/{context.created_page_ids[-1]}")
     assert r.status_code == 200
 
 
 @then("the page has a published state")
 def step_impl(context):
-    r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
+    r = requests.get(f"{BASE_URL}/pages/{context.created_page_ids[-1]}")
     assert r.json()["status"] == "PUBLISHED"
 
 
 @when("I update the page")
 def step_impl(context):
     r = requests.put(
-        f"{BASE_URL}/pages/{context.created_page_id}", json={"name": "updated test"}
+        f"{BASE_URL}/pages/{context.created_page_ids[-1]}",
+        json={"name": "updated test"},
     )
     assert r.status_code == 200
 
 
 @then("the page is updated")
 def step_impl(context):
-    r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
+    r = requests.get(f"{BASE_URL}/pages/{context.created_page_ids[-1]}")
     assert r.json()["name"] == "updated test"
-
-
-@given("a page is published")
-def step_impl(context):
-    r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
-    context.created_page_id = r.json()["id"]
-    r = requests.post(f"{BASE_URL}/pages/publish/{context.created_page_id}")
-    assert r.status_code == 200
 
 
 @then("a draft is created")
 def step_impl(context):
-    r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
+    r = requests.get(f"{BASE_URL}/pages/{context.created_page_ids[-1]}")
     assert r.json()["status"] == "DRAFT"
     assert r.json()["name"] == "updated test"
     assert r.json()["version"] == 2
@@ -93,7 +88,7 @@ def step_impl(context):
 @when("I make a comment on that page")
 def step_impl(context):
     r = requests.post(
-        f"{BASE_URL}/pages/comment/{context.created_page_id}",
+        f"{BASE_URL}/pages/comment/{context.created_page_ids[-1]}",
         json={"author": "test user", "comment": "test comment"},
     )
     assert r.status_code == 200
@@ -101,6 +96,16 @@ def step_impl(context):
 
 @then("the comment is created")
 def step_impl(context):
-    r = requests.get(f"{BASE_URL}/pages/{context.created_page_id}")
+    r = requests.get(f"{BASE_URL}/pages/{context.created_page_ids[-1]}")
     print(r.json())
     assert r.json()["comments"] == [{"author": "test user", "comment": "test comment"}]
+
+
+@given("I got {n} page(s) published")
+def step_impl(context, n):
+    context.created_page_ids = []
+    for i in range(int(n)):
+        r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
+        context.created_page_ids.append(r.json()["id"])
+        r = requests.post(f"{BASE_URL}/pages/publish/{context.created_page_ids[-1]}")
+        assert r.status_code == 200
