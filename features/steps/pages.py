@@ -97,7 +97,6 @@ def step_impl(context):
 @then("the comment is created")
 def step_impl(context):
     r = requests.get(f"{BASE_URL}/pages/{context.created_page_ids[-1]}")
-    print(r.json())
     assert r.json()["comments"] == [{"author": "test user", "comment": "test comment"}]
 
 
@@ -109,3 +108,22 @@ def step_impl(context, n):
         context.created_page_ids.append(r.json()["id"])
         r = requests.post(f"{BASE_URL}/pages/publish/{context.created_page_ids[-1]}")
         assert r.status_code == 200
+
+
+@when("I create a chapter with the pages")
+def step_impl(context):
+    r = requests.post(
+        f"{BASE_URL}/chapters",
+        json={"name": "test chapter", "pages": context.created_page_ids},
+    )
+    context.created_chapter_id = r.json()["id"]
+    assert r.status_code == 200
+
+
+@then("I have a chapter with pages")
+def step_impl(context):
+    r = requests.get(f"{BASE_URL}/chapters/{context.created_chapter_id}")
+    assert r.status_code == 200
+    assert r.json()["name"] == "test chapter"
+    for i, page_id in enumerate(context.created_page_ids):
+        r.json()["pages"][i]["id"] == page_id

@@ -32,6 +32,5 @@ Scenario: Comment a page
 
 Scenario: Make a chapter
     Given I got 3 page(s) published
-    When I create a chapter
-    and I put the pages in the chapter
+    When I create a chapter with the pages
     Then I have a chapter with pages
