@@ -13,14 +13,14 @@ def step_impl(context):
 @when("I create a new page")
 def step_impl(context):
     r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
-    context.created_page_id = r.json()["id"]
+    context.created_page_id = r.json()["uuid"]
     assert r.status_code == 200
 
 
 @then("it is returned in the get route")
 def step_impl(context):
     r = requests.get(f"{BASE_URL}/pages")
-    page_ids = map(lambda x: x["id"], r.json())
+    page_ids = map(lambda x: x["uuid"], r.json())
     assert context.created_page_id in page_ids
 
 
@@ -29,14 +29,14 @@ def step_impl(context):
     context.created_page_ids = []
     for i in range(10):
         r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
-        context.created_page_ids.append(r.json()["id"])
+        context.created_page_ids.append(r.json()["uuid"])
         assert r.status_code == 200
 
 
 @then("they are returned in the get route")
 def step_impl(context):
     r = requests.get(f"{BASE_URL}/pages")
-    page_ids = list(map(lambda x: x["id"], r.json()))
+    page_ids = list(map(lambda x: x["uuid"], r.json()))
     for page_id in context.created_page_ids:
         assert page_id in page_ids
 
@@ -46,7 +46,7 @@ def step_impl(context, n):
     context.created_page_ids = []
     for i in range(int(n)):
         r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
-        context.created_page_ids.append(r.json()["id"])
+        context.created_page_ids.append(r.json()["uuid"])
         assert r.status_code == 200
 
 
@@ -96,8 +96,9 @@ def step_impl(context):
 
 @then("the comment is created")
 def step_impl(context):
-    r = requests.get(f"{BASE_URL}/pages/{context.created_page_ids[-1]}")
-    assert r.json()["comments"] == [{"author": "test user", "comment": "test comment"}]
+    r = requests.get(f"{BASE_URL}/pages/contributions/{context.created_page_ids[-1]}")
+    assert r.json()["author"] == "test user"
+    assert r.json()["comment"] == "test comment"
 
 
 @given("I got {n} page(s) published")
@@ -105,7 +106,7 @@ def step_impl(context, n):
     context.created_page_ids = []
     for i in range(int(n)):
         r = requests.post(f"{BASE_URL}/pages", json={"name": "test"})
-        context.created_page_ids.append(r.json()["id"])
+        context.created_page_ids.append(r.json()["uuid"])
         r = requests.post(f"{BASE_URL}/pages/publish/{context.created_page_ids[-1]}")
         assert r.status_code == 200
 
@@ -116,7 +117,7 @@ def step_impl(context):
         f"{BASE_URL}/chapters",
         json={"name": "test chapter", "pages": context.created_page_ids},
     )
-    context.created_chapter_id = r.json()["id"]
+    context.created_chapter_id = r.json()["uuid"]
     assert r.status_code == 200
 
 
@@ -126,4 +127,4 @@ def step_impl(context):
     assert r.status_code == 200
     assert r.json()["name"] == "test chapter"
     for i, page_id in enumerate(context.created_page_ids):
-        r.json()["pages"][i]["id"] == page_id
+        r.json()["pages"][i]["uuid"] == page_id
