@@ -1,9 +1,7 @@
-from typing import Optional
 from datetime import datetime
-
 from pydantic import BaseModel
 
-from .models import PublicationStatus
+from src.models import PublicationStatus
 
 
 class CreatePageDTO(BaseModel):
@@ -20,11 +18,6 @@ class UpdatePageDTO(BaseModel):
         orm_mode = True
 
 
-class CreateChapterDTO(BaseModel):
-    name: str
-    pages: list[str]
-
-
 class Page(BaseModel):
     uuid: str
     name: str
@@ -32,17 +25,6 @@ class Page(BaseModel):
     status: PublicationStatus
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        orm_mode = True
-
-
-class Chapter(BaseModel):
-    uuid: str
-    version: int
-    name: str
-    status: PublicationStatus
-    pages: list[Page] = []
 
     class Config:
         orm_mode = True

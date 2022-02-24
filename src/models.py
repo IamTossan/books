@@ -1,16 +1,12 @@
 import enum
 from sqlalchemy import (
-    Boolean,
     Column,
     ForeignKey,
     Integer,
-    String,
-    Enum,
     DateTime,
     dialects,
     Table,
 )
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from .database import Base
@@ -40,40 +36,3 @@ Chapter_Page = Table(
 class PublicationStatus(enum.Enum):
     DRAFT = "DRAFT"
     PUBLISHED = "PUBLISHED"
-
-
-class Page(Base, BaseColumns):
-    __tablename__ = "pages"
-
-    uuid = Column(String)
-    name = Column(String)
-    version = Column(Integer, default=1)
-    status = Column(Enum(PublicationStatus), default=PublicationStatus.DRAFT)
-
-    contributions = relationship("PageContribution")
-    # chapters = relationship(
-    #     "Chapter", secondary=Chapter_Page, back_populates="chapters"
-    # )
-
-    def __repr__(self):
-        return f"<Page {self.uuid} {self.name} {self.version} {self.status} {self.created_at} {self.updated_at}>"
-
-
-class Chapter(Base, BaseColumns):
-    __tablename__ = "chapters"
-
-    uuid = Column(String)
-    name = Column(String)
-    version = Column(Integer, default=1)
-    status = Column(Enum(PublicationStatus), default=PublicationStatus.DRAFT)
-
-    pages = relationship("Page", secondary=Chapter_Page)
-
-
-class PageContribution(Base, BaseColumns):
-    __tablename__ = "page_contributions"
-
-    author = Column(String)
-    comment = Column(String)
-
-    page_id = Column(Integer, ForeignKey("pages.id"))

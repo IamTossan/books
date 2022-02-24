@@ -1,7 +1,8 @@
 import uuid
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import pages_schema as schemas
+from . import pages_model as models
 
 
 def get_page(db: Session, page_id: str):
@@ -94,25 +95,3 @@ def get_page_contribution(db: Session, page_id: str):
         .filter(models.PageContribution.page_id.in_([p.id for p in pages]))
         .first()
     )
-
-
-def get_chapter(db: Session, chapter_id: str):
-    return (
-        db.query(models.Chapter)
-        .filter(models.Chapter.uuid == chapter_id)
-        .order_by(models.Chapter.updated_at.desc(), models.Chapter.id.desc())
-        .first()
-    )
-
-
-def get_chapters(db: Session):
-    return db.query(models.Chapter).all()
-
-
-def create_chapter(db: Session, chapter: schemas.CreateChapterDTO):
-    pages = [get_page(db, page_id) for page_id in chapter.pages]
-    new_chapter = models.Chapter(name=chapter.name, uuid=str(uuid.uuid4()), pages=pages)
-    db.add(new_chapter)
-    db.commit()
-    db.refresh(new_chapter)
-    return new_chapter
